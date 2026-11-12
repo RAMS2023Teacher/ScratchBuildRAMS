@@ -137,7 +137,62 @@ teachers report problems; #6 is a classroom-culture choice for you.
 - **AI runs locally** in the browser (Teachable Machine) — no data leaves the device.
 - **Open source & auditable**: all code is in this GitHub repo.
 - **Free** to host, and IT can keep scratch.mit.edu blocked.
-## 6. Things to check first
+
+## 6. Hosting
+
+Two halves, both free at school scale:
+
+```
+  Student Chromebook
+        │
+        ├──► Editor website  ─┐  GitHub Pages (static files, built from this repo)
+        ├──► Arcade website  ─┘
+        │
+        ├──► Firebase (Google): sign-in, small database, approved game files
+        │
+        └──► Student's own Google Drive + Google Classroom (their projects)
+```
+
+**1. The websites (editor + Arcade) → GitHub Pages.**
+The editor is "static": just HTML/JavaScript files that run in the browser, with
+no server code. GitHub Pages serves them for free from this repo. Every time we
+push a change, GitHub Actions rebuilds and redeploys automatically.
+- Address: `rams2023teacher.github.io/...` to start.
+- Better: IT adds one DNS record so it lives at a district address such as
+  `code.holliston.k12.ma.us` and `arcade.holliston.k12.ma.us`. A district address
+  looks official, and putting the Arcade on its **own subdomain** makes it easy for
+  the web filter to block/schedule it separately (control #1 in §4).
+- Why not Firebase Hosting for this part: the editor is large (several MB, more
+  with the sprite library), and Firebase's free plan only allows ~360 MB of
+  downloads a day — one class loading it would use that up. GitHub Pages allows
+  ~100 GB/month.
+
+**2. The backend (accounts, Arcade, rules) → Firebase, free "Spark" plan.**
+- *Authentication:* Google sign-in, district domain only.
+- *Firestore database:* rosters, Arcade settings and schedule, approved-game list,
+  play log. Security rules here enforce "only during your CS period / only when the
+  teacher opened it" using the server clock.
+- *Storage:* the approved Arcade `.sb3` files and thumbnails.
+- No server code needed: roster import runs in **your** browser using your own
+  Google Classroom sign-in, so we stay on the free plan (no credit card).
+
+**3. Student projects → the student's Google Drive.** Saving and turning in
+happen directly between the student's browser and Google; our backend never
+touches them.
+
+**Ownership (important).** Create the GitHub account/organization and the
+Firebase project under a **district-owned** account (or add IT as a co-owner),
+not a personal one, so the tool survives staff changes and IT can audit or shut
+it off.
+
+**Expected cost:** $0. Firebase free limits (50k database reads/day, 1 GB storage)
+are far above what a few hundred students use.
+
+**Alternative if IT wants everything in-house:** the same static files and a small
+Node.js server can run on a district server or the district's Google Cloud
+account. More work for IT, same app.
+
+## 7. Things to check first
 
 - **Ask IT what's blocked exactly.** If they block `scratch.mit.edu` but the editor
   loads assets from `cdn.assets.scratch.mit.edu` (sprite/sound library), we'll
@@ -146,7 +201,7 @@ teachers report problems; #6 is a classroom-culture choice for you.
   Scratch's official offline desktop app, and TurboWarp (another open-source
   Scratch editor). Ours adds the school gallery + AI blocks + RAMS branding.
 
-## 7. Legal / licensing notes
+## 8. Legal / licensing notes
 
 - The Scratch editor code is **AGPL-3.0**. We can modify and host it, but we must
   keep the source public (this repo does that) and keep the license file. Add a
@@ -157,7 +212,7 @@ teachers report problems; #6 is a classroom-culture choice for you.
 - Keep a credit line: "Based on Scratch, developed by the Lifelong Kindergarten
   Group at the MIT Media Lab."
 
-## 8. Next steps
+## 9. Next steps
 
 1. Pick a name and base (plain Scratch editor vs. MIT PRG RAISE Playground).
 2. Build Phase 1 and deploy it to GitHub Pages for a test link.
